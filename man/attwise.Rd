@@ -13,7 +13,7 @@ attwise(df, "participant", "trial", "alternative", "attribute")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{df}{ object of class data table
+  \item{df}{ object of class data frame
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -61,24 +61,11 @@ Sonja Perkovic
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x)
-{
-  }
-#the same example as for 'altwise' function can be used
-#data set of class data atble with four variables
-#variables should be class numeric apart from the attribute variable which should be class character
-#the names of the respective variables must match the names provided in this example
-df <- data.table(participant=rep(c(1:3), times = c(100,120,150)))
-sim <- nrow(df)
-df$trial <- ifelse(df$participant == 1, rep(c(1:5), times = c(20,15,25,18,22)),
-            ifelse(df$participant == 2, rep(c(1:5), times = c(30,25,20,25,20)),
-            ifelse(df$participant == 3, rep(c(1:5), times = c(30,35,25,32,2)), 0)))
-df$alternative <- sample(1:3, sim, T)
-df$attribute <- sample(c("a","b","c"), sim, T)
-df <- df[order(participant, trial),]
+
+#the same data set (df) as for 'altwise' function should be used
 
 attwisePatterns <- attwise(df, "participant", "trial", "alternative", "attribute")
-}
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ ~attribute-wise }% use one of  RShowDoc("KEYWORDS")

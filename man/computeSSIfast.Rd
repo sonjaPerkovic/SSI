@@ -6,17 +6,17 @@
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function computes SSI by combining previously described functions without offering a possibility to inspect data sets after each step. 
+This function computes SSI by combining previously described functions without offering a possibility to inspect objects after each step.
 }
 \usage{
 computeSSIfast(df, dfRan, participant, trial, alternative, attribute, num_alt, num_att, iter)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{df}{ object of class data table
+  \item{df}{ object of class data frame
 %%     ~~Describe \code{x} here~~
 }
-\item{dfRan}{ object of class data table without alternative and attribute variables
+\item{dfRan}{ object of class data frame without alternative and attribute variables
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -73,11 +73,9 @@ Sonja Perkovic
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x) 
-{
-  }
-SSIoutputFast = computeSSIfast(df, dfRan, "participant", "trial", "alternative", "attribute", 3, 3, 1000)
-}
+
+SSIoutputFast = computeSSIfast(df, dfRan, "participant", "trial", "alternative", "attribute", 4, 4, 400)
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")

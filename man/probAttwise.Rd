@@ -6,7 +6,7 @@
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function computes probabilites and probability complements by comparing the original data set created using 'attwise' function and simulated data sets created using 'attwiseSimRep' function. The prinicple used for comparison is as follows: it is counted how many times does each unique pattern from the original data set occurs that many times within a specific trial in n simulated data sets.
+This function computes probabilites and probability complements by comparing the original data set created using 'attwise' function and simulated data sets created using 'attwiseSimRep' function. The prinicple used for comparison is as follows: it is counted how many times does each unique pattern from the original data set occurs at least that many times within a specific trial in n simulated data sets.
 }
 \usage{
 probAttwise(attwisePatterns, attwisePatternsSim, iter)
@@ -55,11 +55,9 @@ Sonja Perkovic
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x)
-{
-  }
-attwiseProbabilities = probAttwise(attwisePatterns, attwisePatternsSim, 1000)
-}
+
+attwiseProbabilities = probAttwise(attwisePatterns, attwisePatternsSim, 400)
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ ~attribute-wise }% use one of  RShowDoc("KEYWORDS")

@@ -1,7 +1,7 @@
 \name{attwiseSim}
 \alias{attwiseSim}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{ A function that a creates random data set and identifies attribute-wise patterns in it
+\title{ A function that creates a random data set and identifies attribute-wise patterns in it
 %%  ~~function to do ... ~~
 }
 \description{
@@ -13,7 +13,7 @@ attwiseSim(dfRan, "participant", "trial", num_alt, num_att)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{dfRan}{ object of class data table
+  \item{dfRan}{ object of class data frame
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -62,19 +62,11 @@ Sonja Perkovic
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x)
-{
-  }
-#the same example as for 'altwiseSim' function can be used
-#creating a data set with participant and trial variables only by copying them from df data set
-#df data set is created in an example for 'altwise' function
-dfRan <- NULL
-dfRan$participant <- df$participant
-dfRan$trial <- df$trial
-dfRan <- as.data.table(dfRan)
 
-attwisePatternsRan <- attwiseSim(dfRan, "participant", "trial", 3, 3)
-}
+#the same data set (dfRan) as for 'altwiseSim' function should be used
+
+attwisePatternsRan <- attwiseSim(dfRan, "participant", "trial", 4, 4)
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ ~attribute-wise }% use one of  RShowDoc("KEYWORDS")

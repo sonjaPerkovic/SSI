@@ -6,7 +6,7 @@
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-A function that repeats 'attwiseSim' function n times and row binds created data sets.
+A function that repeats 'attwiseSim' function n times and binds rows of created data sets.
 }
 \usage{
 attwiseSimRep(dfRan,"participant", "trial", num_alt, num_att, iter)
@@ -64,11 +64,9 @@ Sonja Perkovic
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x)
-{
-  }
-attwisePatternsSim = attwiseSimRep(dfRan,"participant", "trial", 3, 3, 1000)
-}
+
+attwisePatternsSim = attwiseSimRep(dfRan,"participant", "trial", 4, 4, 400)
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ ~attribute-wise }% use one of  RShowDoc("KEYWORDS")

@@ -6,20 +6,20 @@
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function takes information from the data sets created with 'probAltwise' and 'probAttwise' functions and computes SSI. It also uses the original data file to compute the string length for each trial.
+This function takes information from the data sets created with 'probAltwise' and 'probAttwise' functions and computes SSI. It also uses the original data set to compute the string length for each trial.
 }
 \usage{
 computeSSI(df, altwiseProbabilities, attwiseProbabilities, "participant", "trial", "alternative", "attribute")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-\item{df}{ object of class data table
+\item{df}{ object of class data frame
 %%     ~~Describe \code{x} here~~
 }
-\item{altwiseProbabilities}{ data set created using 'probAltwise' function
+\item{altwiseProbabilities}{ object created using 'probAltwise' function
 %%     ~~Describe \code{x} here~~
 }
-\item{attwiseProbabilities}{ data set created using 'probAttwise' function
+\item{attwiseProbabilities}{ object created using 'probAttwise' function
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -67,12 +67,10 @@ Sonja Perkovic
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x)
-{
-  }
+
 #for this function to work, all the previously presented functions need to be compiled
 SSI_output = SSI(df, altwiseProbabilities, attwiseProbabilities, "participant", "trial", "alternative", "attribute")
-}
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ ~alternative-wise }% use one of  RShowDoc("KEYWORDS")
