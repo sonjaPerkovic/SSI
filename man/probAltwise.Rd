@@ -56,7 +56,7 @@ Sonja Perkovic
 
 ## The function is currently defined as
 
-altwiseProbabilities = probAltwise(altwisePatterns, altwisePatternsSim, 400)
+altwiseProbabilities = probAltwise(altwisePatterns, altwisePatternsSim, 1000)
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

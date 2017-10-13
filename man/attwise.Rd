@@ -62,7 +62,10 @@ Sonja Perkovic
 
 ## The function is currently defined as
 
-#the same data set (df) as for 'altwise' function should be used
+#the data set is the same as for all the previous functions
+
+set.seed(1)
+df <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
 
 attwisePatterns <- attwise(df, "participant", "trial", "alternative", "attribute")
 

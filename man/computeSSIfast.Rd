@@ -9,14 +9,14 @@
 This function computes SSI by combining previously described functions without offering a possibility to inspect objects after each step.
 }
 \usage{
-computeSSIfast(df, dfRan, participant, trial, alternative, attribute, num_alt, num_att, iter)
+computeSSIfast(df, df, participant, trial, alternative, attribute, num_alt, num_att, iter)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{df}{ object of class data frame
 %%     ~~Describe \code{x} here~~
 }
-\item{dfRan}{ object of class data frame without alternative and attribute variables
+\item{dfRan}{ the same object of class data frame which will be used for creating random alternative and attribute variables
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -74,7 +74,7 @@ Sonja Perkovic
 
 ## The function is currently defined as
 
-SSIoutputFast = computeSSIfast(df, dfRan, "participant", "trial", "alternative", "attribute", 4, 4, 400)
+SSIoutputFast = computeSSIfast(df, dfRan, "participant", "trial", "alternative", "attribute", 4, 4, 1000)
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

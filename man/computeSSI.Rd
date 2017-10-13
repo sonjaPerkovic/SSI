@@ -6,7 +6,7 @@
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function takes information from the data sets created with 'probAltwise' and 'probAttwise' functions and computes SSI. It also uses the original data set to compute the string length for each trial.
+This function takes information from the data sets created with 'probAltwise' and 'probAttwise' functions and computes the SSI. It also uses the original data set to compute the string length for each trial.
 }
 \usage{
 computeSSI(df, altwiseProbabilities, attwiseProbabilities, "participant", "trial", "alternative", "attribute")
@@ -69,6 +69,7 @@ Sonja Perkovic
 ## The function is currently defined as
 
 #for this function to work, all the previously presented functions need to be compiled
+
 SSI_output = SSI(df, altwiseProbabilities, attwiseProbabilities, "participant", "trial", "alternative", "attribute")
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the

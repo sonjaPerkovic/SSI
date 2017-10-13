@@ -66,6 +66,8 @@ Sonja Perkovic
 #data set of class data frame with four variables
 #variables should be class numeric apart from the attribute variable which should be class character
 #the names of the respective variables must match the names provided in this example
+
+set.seed(1)
 df <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
 
 altwisePatterns <- altwise(df, "participant", "trial", "alternative", "attribute")

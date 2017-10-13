@@ -9,11 +9,11 @@
 A function that repeats 'attwiseSim' function n times and binds rows of created data sets.
 }
 \usage{
-attwiseSimRep(dfRan,"participant", "trial", num_alt, num_att, iter)
+attwiseSimRep(df,"participant", "trial", num_alt, num_att, iter)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{dfRan}{ random data set created after compiling 'attwiseSim' function
+  \item{df}{ random data set created after compiling 'attwiseSim' function
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -65,7 +65,12 @@ Sonja Perkovic
 
 ## The function is currently defined as
 
-attwisePatternsSim = attwiseSimRep(dfRan,"participant", "trial", 4, 4, 400)
+#the data set is the same as for all the previous functions
+
+set.seed(1)
+df <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
+
+attwisePatternsSim = attwiseSimRep(df,"participant", "trial", 4, 4, 1000)
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

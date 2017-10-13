@@ -9,11 +9,11 @@
 A function that repeats 'altwiseSim' function n times and binds rows of created data sets.
 }
 \usage{
-altwiseSimRep(dfRan,"participant", "trial", num_alt, num_att, iter)
+altwiseSimRep(df,"participant", "trial", num_alt, num_att, iter)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{dfRan}{ random data set created after compiling 'altwiseSim' function
+  \item{df}{ random data set created after compiling 'altwiseSim' function
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -65,7 +65,12 @@ Sonja Perkovic
 
 ## The function is currently defined as
 
-altwisePatternsSim = altwiseSimRep(dfRan,"participant", "trial", 4, 4, 400)
+#data set is the same as in the examples for 'altwise' and 'alteiseSim' function
+
+set.seed(1)
+df <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
+
+altwisePatternsSim = altwiseSimRep(df,"participant", "trial", 4, 4, 1000)
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

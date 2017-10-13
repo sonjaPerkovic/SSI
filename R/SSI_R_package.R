@@ -1,11 +1,6 @@
 #simulate data ####
 infoSearch <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
 
-infoSearchRan <- NULL
-infoSearchRan$participant <- infoSearch$participant
-infoSearchRan$trial <- infoSearch$trial
-infoSearchRan <- as.data.table(infoSearchRan)
-
 #identify alternative-wise patterns ####
 
 altwise <- function(df, participant, trial, alternative, attribute) {
@@ -92,7 +87,7 @@ altwiseSim <- function(df, participant, trial, num_alt, num_att) {
   df3
 }
 
-#test1 = altwiseSim(infoSearchRan, "participant", "trial", 4, 4)
+#test1 = altwiseSim(infoSearch, "participant", "trial", 4, 4)
 
 #replicate 'altwiseSim' function n times ####
 
@@ -100,7 +95,7 @@ altwiseSimRep <- function(df, participant, trial, num_alt, num_att, iter) {
   do.call(rbind, lapply(1:iter, function(i) altwiseSim(df, participant, trial, num_alt, num_att)))
 }
 
-#test2 = altwiseSimRep(infoSearchRan,"participant", "trial", 4, 4, 400)
+#test2 = altwiseSimRep(infoSearch,"participant", "trial", 4, 4, 1000)
 
 #calculate probabilities and probability complements for alternative-wise patterns ####
 
@@ -121,12 +116,9 @@ probAltwise <- function(df, df1, iter) {
   #calculating pattern leght
   df$patt_length <- nchar(df$pattern)
   df
-  #saving file
-  write.csv(file="altwisePatterns.csv", x=df)
-  df
 }
 
-#test3 = probAltwise(test, test2, 400)
+#test3 = probAltwise(test, test2, 1000)
 
 #identify attribute-wise patterns ####
 
@@ -182,7 +174,7 @@ attwiseSim <- function(df, participant, trial, num_alt, num_att) {
   df2
 }
 
-#test5 = attwiseSim(infoSearchRan, "participant", "trial", 4, 4)
+#test5 = attwiseSim(infoSearch, "participant", "trial", 4, 4)
 
 #replicate 'attwiseSim' function n times ####
 
@@ -190,7 +182,7 @@ attwiseSimRep <- function(df, participant, trial, num_alt, num_att, iter) {
   do.call(rbind, lapply(1:iter, function(i) attwiseSim(df, participant, trial, num_alt, num_att)))
 }
 
-#test6 = attwiseSimRep(infoSearchRan, "participant", "trial", 4, 4, 400)
+#test6 = attwiseSimRep(infoSearch, "participant", "trial", 4, 4, 1000)
 
 #calculate probabilities and probability complements for attribute-wise patterns####
 
@@ -211,12 +203,9 @@ probAttwise <- function(df, df1, iter) {
   #calculating pattern lenght
   df$patt_length <- nchar(df$pattern)
   df
-  #saving file
-  write.csv(file="attwisePatterns.csv", x=df)
-  df
 }
 
-#test7 = probAttwise(test4, test6, 400)
+#test7 = probAttwise(test4, test6, 1000)
 
 #calculate SSI ####
 
@@ -259,9 +248,6 @@ computeSSI <- function(df, df1, df3, participant, trial, alternative, attribute)
   setnames(df5, "V1.y", "string_length")
   #applying SSI equation
   df5$SSI <- (df5$altwise_sum + df5$attwise_sum) / df5$string_length
-  df5
-  #saving file
-  write.csv(file="SSI.csv", x=df)
   df5
 }
 
@@ -320,7 +306,6 @@ computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute
 
   test = altwise(df, "participant", "trial", "alternative", "attribute")
   test
-  #test0 = computeSSIfast(infoSearch, infoSearchRan, "participant", "trial", "alternative", "attribute", 3, 3)
 
   #alternative-wise pattern simulation ####
   #the same procedure as for altwise function, just on a randomized data set
@@ -359,9 +344,7 @@ computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute
     dfRan3
   }
 
-  test1 = altwiseSim(dfRan, "participant", "trial", num_alt, num_att)
-
-  #test01 = computeSSIfast(infoSearch, infoSearchRan, "participant", "trial", "alternative", "attribute", 3, 3)
+  test1 = altwiseSim(df, "participant", "trial", num_alt, num_att)
 
   #replicate 'altwiseSim' function n times ####
 
@@ -371,8 +354,6 @@ computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute
 
   test2 = altwiseSimRep(dfRan,"participant", "trial", num_alt, num_att, iter)
   test2
-
-  #test = computeSSIfast(infoSearch, infoSearchRan, "participant", "trial", "alternative", "attribute", 3, 3)
 
   #calculate probabilities and probability complements for alternative-wise patterns ####
 
@@ -397,8 +378,6 @@ computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute
 
   test3 = probAltwise(test, test2, iter)
   test3
-
-  #test_new = computeSSIfast(infoSearch, infoSearchRan, "participant", "trial", "alternative", "attribute", 4, 4)
 
   #identify attribute-wise patterns ####
 
@@ -454,8 +433,6 @@ computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute
     dfRan2
   }
 
-  #test5 = attwiseSim(infoSearchRan, "participant", "trial", num_alt, num_att)
-
   #replicate 'attwiseSim' function n times ####
 
   attwiseSimRep <- function(dfRan, participant, trial, num_alt, num_att, iter) {
@@ -488,8 +465,6 @@ computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute
 
   test7 = probAttwise(test4, test6, iter)
   test7
-
-  #test_newest <- computeSSIfast(infoSearch, infoSearchRan, "participant", "trial", "alternative", "attribute", 3, 3)
 
   #calculate SSI ####
 
@@ -539,7 +514,7 @@ computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute
   test8
 }
 
-#test_final = computeSSIfast(infoSearch, infoSearchRan, "participant", "trial", "alternative", "attribute", 4, 4, 400)
+#test_final = computeSSIfast(infoSearch, infoSearch, "participant", "trial", "alternative", "attribute", 4, 4, 10)
 
 
 

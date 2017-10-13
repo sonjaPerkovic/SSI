@@ -56,7 +56,7 @@ Sonja Perkovic
 
 ## The function is currently defined as
 
-attwiseProbabilities = probAttwise(attwisePatterns, attwisePatternsSim, 400)
+attwiseProbabilities = probAttwise(attwisePatterns, attwisePatternsSim, 1000)
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

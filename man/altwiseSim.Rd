@@ -6,14 +6,14 @@
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function creates two new varibles (alterntive and attribute) by sampling evenly from a defined set of numbers and letters. After the function adds these two columns to the original data set, from which the existing alternative and attribute variables have been previosuly deleted, it identifies alternative-wise patterns and their frequencies within each trial as a unit of analysis.
+This function creates two new varibles (alterntive and attribute) by sampling evenly from a defined set of numbers and letters. After the function replaces   the variables from the original data set with these two newly created alternative and attribute variables, it identifies alternative-wise patterns and their frequencies within each trial as a unit of analysis.
 }
 \usage{
-altwiseSim(dfRan, "participant", "trial", num_alt, num_att)
+altwiseSim(df, "participant", "trial", num_alt, num_att)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{dfRan}{ object of class data frame
+  \item{df}{ object of class data frame
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -31,7 +31,7 @@ altwiseSim(dfRan, "participant", "trial", num_alt, num_att)
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
-This function uses the same data set as the function 'altwise'. The difference is that for this function to work, alternative and attribute columns should be deleted from the data set before compiling the function.
+This function uses the same data set as the function 'altwise'.
 }
 \value{
 %%  ~Describe the value returned
@@ -63,17 +63,12 @@ Sonja Perkovic
 
 ## The function is currently defined as
 
-#creating a data set with participant and trial variables only by copying them from df data set
-#df data set is created in an example for 'altwise' function
+#data set is the same as in an example for 'altwise' function
 
-dfRan <- NULL
-dfRan$participant <- df$participant
-dfRan$trial <- df$trial
+set.seed(1)
+df <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
 
-#class needs to be changed to data table because of the operations which will later be performed on the data set
-dfRan <- as.data.table(dfRan)
-
-altwisePatternsRan <- altwiseSim(dfRan, "participant", "trial", 4, 4)
+altwisePatternsRan = altwiseSim(df, "participant", "trial", 4, 4)
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
