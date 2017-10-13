@@ -1,5 +1,5 @@
-#exportPattern("^[[:alpha:]]+")
+exportPattern("^[[:alpha:]]+")
 
 import(data.table)
 import(plyr)
-import(ddplyr)
+import(dplyr)
