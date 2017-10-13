@@ -1,11 +1,7 @@
 #import libraries
-# library(data.table)
-# library(plyr)
-# library(dplyr)
-#
-# #set working directory
-# setwd("C://Users//au161118//Dropbox//SSI_R_package")
-# setwd("/Users/sonjaperkovic/Dropbox/SSI_R_package")
+library(data.table)
+library(plyr)
+library(dplyr)
 
 # #simulate data ####
 infoSearch <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
