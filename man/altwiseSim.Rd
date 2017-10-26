@@ -66,7 +66,7 @@ Sonja Perkovic
 #data set is the same as in an example for 'altwise' function
 
 set.seed(1)
-df <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
+infoSearch <- data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
 
 altwisePatternsRan = altwiseSim(df, "participant", "trial", 4, 4)
 

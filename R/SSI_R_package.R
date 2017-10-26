@@ -1,5 +1,5 @@
 #simulate data ####
-infoSearch <- data.frame(participant=rep(c(1:50), each = 40), trial=rep(c(1:100), each = 20), alternative = sample(1:4, 2000, T), attribute = sample(c("a","b","c","d"), 2000, T))
+infoSearch <- data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
 
 #identify alternative-wise patterns ####
 
@@ -514,7 +514,7 @@ computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute
   test8
 }
 
-#test_final = computeSSIfast(infoSearch, infoSearch, "participant", "trial", "alternative", "attribute", 4, 4, 10)
+#test_final = computeSSIfast(infoSearch, infoSearch, "participant", "trial", "alternative", "attribute", 4, 4, 400)
 
 
 
