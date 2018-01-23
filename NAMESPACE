@@ -1,4 +1,5 @@
 exportPattern("^[[:alpha:]]+")
+importFrom("utils", "write.csv")
 
 import(data.table)
 import(dplyr)

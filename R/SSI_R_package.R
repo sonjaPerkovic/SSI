@@ -1,11 +1,11 @@
 #simulate data
-infoSearch = data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
+#infoSearch = data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
 
 #a function that wraps all necessary functions and computes SSI
 
 #identify alternative- and attribute-wise patterns ####
 
-computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num_alt, num_att, iter) {
+computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num_alt, num_att, threshold, iter) {
 
   patterns = function(df, participant, trial, alternative, attribute, threshold) {
 
@@ -13,9 +13,9 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df = as.data.table(df)
 
     #delete dwells (subsequent fixations within the same AOI)
-    df$attributeClean = ifelse(df[[trial]] == shift(df[[trial]], 1L)
-                             & df[[alternative]] == shift(df[[alternative]], 1L)
-                             & df[[attribute]] == shift(df[[attribute]], 1L), 1, 0)
+    df$attributeClean = ifelse(df$trial == shift(df$trial, 1L)
+                             & df$alternative == shift(df$alternative, 1L)
+                             & df$attribute == shift(df$attribute, 1L), 1, 0)
     df = subset(df, attributeClean != 1 | is.na(attributeClean))
     df$attributeClean = NULL
 
@@ -120,7 +120,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df3
   }
 
-  test = patterns(infoSearch, "participant", "trial", "alternative", "attribute", 4)
+  test = patterns(df, "participant", "trial", "alternative", "attribute", threshold)
   test
 
   #alternative- and attribute-wise pattern simulation ####
@@ -142,9 +142,9 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     dfRan$attribute = sample(attset, sim, T)
 
     #delete dwells (subsequent fixations within the same AOI)
-    dfRan$attributeClean = ifelse(dfRan[[trial]] == shift(dfRan[[trial]], 1L)
-                                & dfRan[[alternative]] == shift(dfRan[[alternative]], 1L)
-                                & dfRan[[attribute]] == shift(dfRan[[attribute]], 1L), 1, 0)
+    dfRan$attributeClean = ifelse(dfRan$trial == shift(dfRan$trial, 1L)
+                                & dfRan$alternative == shift(dfRan$alternative, 1L)
+                                & dfRan$attribute == shift(dfRan$attribute, 1L), 1, 0)
     dfRan = subset(dfRan, attributeClean != 1 | is.na(attributeClean))
     dfRan$attributeClean = NULL
 
@@ -249,16 +249,17 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     dfRan3
   }
 
-  test1 = patternsSim(infoSearch, "participant", "trial", 4, 4, 4)
+  test1 = patternsSim(dfRan, "participant", "trial", num_alt, num_att, threshold)
   test1
 
   #replicate 'patternsSim' function n times ####
 
-  patternsSimRep = function(dfRan, participant, trial, num_alt, num_att, iter) {
+  patternsSimRep = function(dfRan, participant, trial, num_alt, num_att, threshold, iter) {
     do.call(rbind, lapply(1:iter, function(i) patternsSim(dfRan, participant, trial, num_alt, num_att, threshold)))
   }
 
-  test2 = patternsSimRep(dfRan, "participant", "trial", num_alt, num_att, iter)
+  test2 = patternsSimRep(dfRan, "participant", "trial", num_alt, num_att, threshold, iter)
+  test2
 
   #calculate probabilities and probability complements ####
 
@@ -279,27 +280,27 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df$probability = df$pattFreqSim / iter
 
     #calculate probability complements
-    df$prob_complement = 1 - df$probability
+    df$probComplement = 1 - df$probability
 
     #calculate pattern lenghts
     df$pattLength = nchar(df$pattern)
     df
-
-    #save table
-    #in case we want to perform some data analyses without doing simulation again
-    write.csv(file="patterns.csv", x = df)
   }
 
   test3 = patternsProb(test, test2, iter)
+  test3
 
   #apply SSI equation ####
 
   applySSIequation = function(df, df1, participant, trial, alternative, attribute) {
 
+    #change class
+    df = as.data.table(df)
+
     #calculate string length for each trial
-    df$attributeClean = ifelse(df[[trial]] == shift(df[[trial]], 1L)
-                               & df[[alternative]] == shift(df[[alternative]], 1L)
-                               & df[[attribute]] == shift(df[[attribute]], 1L), 1, 0)
+    df$attributeClean = ifelse(df$trial == shift(df$trial, 1L)
+                               & df$alternative == shift(df$alternative, 1L)
+                               & df$attribute == shift(df$attribute, 1L), 1, 0)
     df = subset(df, attributeClean != 1 | is.na(attributeClean))
     df[, "attributeClean" := NULL]
     setkey(df, "participant", "trial")
@@ -326,9 +327,14 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
   }
 
   test4 = applySSIequation(df, test3, "participant", "trial", "alternative", "attribute")
+  test4
+
+  #save table
+  #in case we want to perform some data analyses without doing simulation again
+  write.csv(file="SSI.csv", x = test4)
 }
 
-#test = computeSSI(infoSearch, infoSearch, "participant", "trial", "alternative", "attribute", 4, 4, 400)
+#testFinal = computeSSI(infoSearch, infoSearch, "participant", "trial", "alternative", "attribute", 4, 4, 2, 100)
 
 
 

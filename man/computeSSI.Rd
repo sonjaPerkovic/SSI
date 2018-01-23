@@ -1,22 +1,22 @@
-\name{computeSSIfast}
-\alias{computeSSIfast}
+\name{computeSSI}
+\alias{computeSSI}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{A function that computes SSI by combining all the functions
+\title{A function that computes SSI
 %%  ~~function to do ... ~~
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function combines all other functions in the repository and computes SSI. It does not offer a possibility to inspect created objects after each step.
+This function combines integrates all the necessary functions and computes the SSI. It also creates a file with the SSI values for all the alternative- and attribute-wise patterns found. It is important that the format of a data set corresponds to the one provided in the example. Also, column names should match the column names provided in the example. One can adjust the number of alternatives and attributes, number of simulations as well as the minimum threshold for pattern length by setting the function parameters.
 }
 \usage{
-computeSSIfast(df, dfRan, participant, trial, alternative, attribute, num_alt, num_att, iter)
+computeSSI(df, dfRan, participant, trial, alternative, attribute, num_alt, num_att, threshold, iter)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{df}{ object of class data frame
 %%     ~~Describe \code{x} here~~
 }
-\item{dfRan}{ the same object of class data frame which will be used for creating random alternative and attribute variables
+\item{dfRan}{ the same object which is used for creating random data
 %%     ~~Describe \code{x} here~~
 }
 \item{participant}{ identifies each unique subject
@@ -25,19 +25,19 @@ computeSSIfast(df, dfRan, participant, trial, alternative, attribute, num_alt, n
 \item{trial}{ identifies each unique trial
 %%     ~~Describe \code{x} here~~
 }
-\item{alternative}{ fixations to different alternatives
+\item{alternative}{ column with eye fixations to different alternatives
 %%     ~~Describe \code{x} here~~
 }
-\item{attribute}{ fixations to different attributes
+\item{attribute}{ column with eye fixations to different attributes
 %%     ~~Describe \code{x} here~~
 }
-\item{num_alt}{ number of alternatives
+\item{num_alt}{ number of alternatives in the experiment
 %%     ~~Describe \code{x} here~~
 }
-\item{num_att}{ number of attributes
+\item{num_att}{ number of attributes in the experiment
 %%     ~~Describe \code{x} here~~
 }
-\item{iter}{ number of iterations
+\item{iter}{ number of simulation iterations
 %%     ~~Describe \code{x} here~~
 }
 }
@@ -73,11 +73,11 @@ Sonja Perkovic
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-#IMPORTANT! variables denoting participants, trials, alternatives and attributes should have names that match the ones in the example below
+#IMPORTANT! variables representing participants, trials, alternatives and attributes in your data should have the names that match the ones in the example below!
 
-df <- data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
+df = data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
 
-SSIoutputFast = computeSSIfast(df, df, "participant", "trial", "alternative", "attribute", 4, 4, 1000)
+SSI = computeSSI(df, df, "participant", "trial", "alternative", "attribute", 4, 4, 4, 1000)
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
