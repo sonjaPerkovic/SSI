@@ -1,520 +1,334 @@
-#simulate data ####
-infoSearch <- data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
+#simulate data
+infoSearch = data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
 
-#identify alternative-wise patterns ####
+#a function that wraps all necessary functions and computes SSI
 
-altwise <- function(df, participant, trial, alternative, attribute) {
-  #create counter variable that assigns a new number whenever the alternative changes
-  df <- setDT(df)[, counter:= rleid(trial, alternative)]
-  #concatenate attribute values into strings
-  #this is done for each alternative, within each trial and for each participant
-  df1 <- df[,list(string <- paste(attribute, collapse = ""),
-                  participant = unique(participant),
-                  trial = unique(trial)), by = counter]
-  #delete counter varibale
-  df1[, "counter" := NULL]
-  #function which keeps unique letters in a string and orders them alphabetically
-  relaxedFreqOrder <- function(i){
-    paste0(unique(sort(unlist(strsplit(i, "")))), collapse = "")
-  }
-  #applying the function
-  df1$string <- lapply(df1$V1, relaxedFreqOrder)
-  #deleting unnecessary variable
-  df1[, "V1" := NULL]
-  #changing class
-  df1$string <- as.character(df1$string)
-  #creating counter variable which identifies identical subsequent strings
-  df1 <- setDT(df1)[, counter:= rleid(string, trial)]
-  #variable that identifies identical subsequent counter variables
-  df1$equalCounter <- ifelse(df1$counter == lag(df1$counter, n = 1L)
-                             | df1$counter == lead(df1$counter, n = 1L), 1, 0)
-  #subset the data
-  df1 <- subset(df1, equalCounter != 0)
-  #keep string of length at least two letters
-  df1 <- subset(df1, nchar(as.character(string)) >= 2)
-  #concatenate strings into patterns using the counter variable
-  df2 <- df1[,list(string <- paste(string, collapse = ""),
-                   participant = unique(participant),
-                   trial = unique(trial)), by = counter]
+#identify alternative- and attribute-wise patterns ####
 
-  #delete counter variable
-  df2[, "counter" := NULL]
-  #count how many times each unique pattern occurs
-  df3 <- as.data.table(with(df2, table(V1, trial, participant)))
-  #subest the data
-  df3 <- subset(df3, N != 0)
-  #rename column
-  setnames(df3, "V1", "pattern")
-  df3
-}
+computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num_alt, num_att, iter) {
 
-#test = altwise(infoSearch, "participant", "trial", "alternative", "attribute")
+  patterns = function(df, participant, trial, alternative, attribute, threshold) {
 
-#alternative-wise pattern simulation ####
-#the same procedure as for altwise function, just on a randomized data set
-altwiseSim <- function(df, participant, trial, num_alt, num_att) {
-  #making sure we sample the total number of elements from the original data set
-  sim <- nrow(df)
-  #creating new alternative variable (random)
-  df$alternative <- sample(1:num_alt, sim, T)
-  #creating new attribute variable (random)
-  attset <- letters[1:num_att]
-  df$attribute <- sample(attset, sim, T)
-  df <- setDT(df)[, counter:= rleid(trial, alternative)]
-  df1 <- df[,list(string <- paste(attribute, collapse = ""),
-                  participant = unique(participant),
-                  trial = unique(trial)), by = counter]
-  df1[, "counter" := NULL]
-  relaxedFreqOrder <- function(i){
-    paste0(unique(sort(unlist(strsplit(i, "")))), collapse = "")
-  }
-  df1$string <- lapply(df1$V1, relaxedFreqOrder)
-  df1[, "V1" := NULL]
-  df1$string <- as.character(df1$string)
-  df1 <- setDT(df1)[, counter:= rleid(string, trial)]
-  df1$equalCounter <- ifelse(df1$counter == lag(df1$counter, n = 1L)
-                             | df1$counter == lead(df1$counter, n = 1L), 1, 0)
-  df1 <- subset(df1, equalCounter != 0)
-  df1 <- subset(df1, nchar(as.character(string)) >= 2)
-  df2 <- df1[,list(string <- paste(string, collapse = ""),
-                   participant = unique(participant),
-                   trial = unique(trial)), by = counter]
+    #change class
+    df = as.data.table(df)
 
-  df2[, "counter" := NULL]
-  df3 <- as.data.table(with(df2, table(V1, trial, participant)))
-  df3 <- subset(df3, N != 0)
-  colnames(df3)[c(1,4)] <- c("pattern", "N_sim")
-  df3
-}
+    #delete dwells (subsequent fixations within the same AOI)
+    df$attributeClean = ifelse(df[[trial]] == shift(df[[trial]], 1L)
+                             & df[[alternative]] == shift(df[[alternative]], 1L)
+                             & df[[attribute]] == shift(df[[attribute]], 1L), 1, 0)
+    df = subset(df, attributeClean != 1 | is.na(attributeClean))
+    df$attributeClean = NULL
 
-#test1 = altwiseSim(infoSearch, "participant", "trial", 4, 4)
+    #identify alternative- and attribute-wise transitions
+    n = nrow(df)
+    df$transAlt = c(0L, df$trial[-n] == df$trial[-1] & df$alternative[-n] == df$alternative[-1])
+    df$transAtt = c(0L, df$trial[-n] == df$trial[-1] & df$attribute[-n] == df$attribute[-1])
 
-#replicate 'altwiseSim' function n times ####
+    #create counter variable which will be used for concatenating fixations into substrings
+    df$transDiff = c(0L, df$transAtt[-n] != df$transAtt[-1] & df$transAlt[-n] != df$transAlt[-1])
+    df$diff1 <- c(NA, diff(df$transDiff))
 
-altwiseSimRep <- function(df, participant, trial, num_alt, num_att, iter) {
-  do.call(rbind, lapply(1:iter, function(i) altwiseSim(df, participant, trial, num_alt, num_att)))
-}
+    df$counter = c(1L, df$trial[-n] != df$trial[-1]
+                     | c(df$trial[-n] == df$trial[-1] &
+                         df$alternative[-n] != df$alternative[-1] &
+                         df$attribute[-n] != df$attribute[-1])
 
-#test2 = altwiseSimRep(infoSearch,"participant", "trial", 4, 4, 1000)
+                     | c(df$trial[-n] == df$trial[-1] &
+                         df$alternative[-n] != df$alternative[-1] &
+                         df$attribute[-n] == df$attribute[-1] &
+                         df$transAtt[-n] != df$transAtt[-1] &
+                         df$transAlt[-n] != df$transAlt[-1] &
+                         df$transDiff[-n] != df$transDiff[-1] &
+                         df$diff1[-n] != df$diff1[-1])
 
-#calculate probabilities and probability complements for alternative-wise patterns ####
+                     | c(df$trial[-n] == df$trial[-1] &
+                         df$alternative[-n] != df$alternative[-1] &
+                         df$attribute[-n] == df$attribute[-1] &
+                         df$transAtt[-n] != df$transAtt[-1] &
+                         df$transAlt[-n] != df$transAlt[-1] &
+                         df$transDiff[-n] == df$transDiff[-1] &
+                         df$diff1[-n] == df$diff1[-1])
 
-probAltwise <- function(df, df1, iter) {
-  #creating a function which will compare original data set with randomized data sets
-  altwiseProb <- function(i){
-    sum(df1$pattern == df$pattern[i]
-        & df1$participant == df$participant[i]
-        & df1$trial == df$trial[i]
-        & df1$N_sim >= df$N[i])
-  }
-  #applying the function
-  df$N_sim <- sapply(1:nrow(df), altwiseProb)
-  #calculating probability
-  df$probability <- df$N_sim / iter
-  #calculating probability complement
-  df$prob_complement <- 1 - df$probability
-  #calculating pattern leght
-  df$patt_length <- nchar(df$pattern)
-  df
-}
+                     | c(df$trial[-n] == df$trial[-1] &
+                         df$alternative[-n] == df$alternative[-1] &
+                         df$attribute[-n] != df$attribute[-1] &
+                         df$transAtt[-n] != df$transAtt[-1] &
+                         df$transAlt[-n] != df$transAlt[-1] &
+                         df$transDiff[-n] != df$transDiff[-1]))
+    df$counter = cumsum(df$counter)
 
-#test3 = probAltwise(test, test2, 1000)
+    #create alternative- and attribute-wise substrings based on counter variable
+    df1 = df[, list(string = paste(attribute, collapse = ""),
+                                   participant = unique(participant),
+                                   trial = unique(trial)), by = counter]
 
-#identify attribute-wise patterns ####
+    #function that identifies rows with identical elements only
+    identElements = function(i){
+      length(unique(unlist(strsplit(i, "")))) == 1
+    }
 
-attwise <- function(df, participant, trial, alternative, attribute) {
-  #deleting dwells (subsequent fixations within the same AOI)
-  df$attribute_clean <- ifelse(df[[alternative]] == shift(df[[alternative]], 1L)
-                               & df[[attribute]] == shift(df[[attribute]], 1L), 1, 0)
-  df <- subset(df, attribute_clean != 1 | is.na(attribute_clean))
-  df[, "attribute_clean" := NULL]
-  #creating counter variable which identifies fixation change for attributes (fixating on a new attribute)
-  df <- setDT(df)[, counterAttwise:= rleid(trial, attribute)]
-  df1 <- df[,list(string <- paste(attribute, collapse = ""),
-                  participant = unique(participant),
-                  trial = unique(trial)), by = counterAttwise]
-  #subseting patterns of length 3 or less
-  df1 <- subset(df1, nchar(as.character(V1)) >= 4)
-  #deleting unnecessary variable
-  df1[, "counterAttwise" := NULL]
-  #counting occurrences of unique patterns
-  df2 <- as.data.table(with(df1, table(V1, trial, participant)))
-  df2 <- subset(df2, N != 0)
-  #renaming column
-  setnames(df2, "V1", "pattern")
-  df2
-}
+    #apply 'identElements' function
+    df1$identElements = lapply(df1$string, identElements)
 
-#test4 = attwise(infoSearch, "participant", "trial", "alternative", "attribute")
+    #subset data with alternative-wise substrings only
+    df2 = subset(df1, identElements == "FALSE")
 
-#attribute-wise pattern simulation ####
-
-#the same procesure as for attwise function, just for randomized data set
-attwiseSim <- function(df, participant, trial, num_alt, num_att) {
-  #making sure we sample the total number of elements from the original data set
-  sim <- nrow(df)
-  #creating new alternative variable (random)
-  df$alternative <- sample(1:num_alt, sim, T)
-  #creating new attribute variable (random)
-  attset <- letters[1:num_att]
-  df$attribute <- sample(attset, sim, T)
-  df$attribute_clean <- ifelse(df$alternative == shift(df$alternative, 1L)
-                               & df$attribute == shift(df$attribute, 1L), 1, 0)
-  df <- subset(df, attribute_clean != 1 | is.na(attribute_clean))
-  df[, "attribute_clean" := NULL]
-  df <- setDT(df)[, counter:= rleid(trial, attribute)]
-  df1 <- df[,list(string <- paste(attribute, collapse = ""),
-                  participant = unique(participant),
-                  trial = unique(trial)), by = counter]
-  df1 <- subset(df1, nchar(as.character(V1)) >= 4)
-  df1[, "counter" := NULL]
-  df2 <- as.data.table(with(df1, table(V1, trial, participant)))
-  df2 <- subset(df2, N != 0)
-  colnames(df2)[c(1,4)] <- c("pattern", "N_sim")
-  df2
-}
-
-#test5 = attwiseSim(infoSearch, "participant", "trial", 4, 4)
-
-#replicate 'attwiseSim' function n times ####
-
-attwiseSimRep <- function(df, participant, trial, num_alt, num_att, iter) {
-  do.call(rbind, lapply(1:iter, function(i) attwiseSim(df, participant, trial, num_alt, num_att)))
-}
-
-#test6 = attwiseSimRep(infoSearch, "participant", "trial", 4, 4, 1000)
-
-#calculate probabilities and probability complements for attribute-wise patterns####
-
-#creating a function which will compare original data set with randomized data sets
-probAttwise <- function(df, df1, iter) {
-  attwiseProb <- function(i){
-    sum(df1$pattern == df$pattern[i]
-        & df1$participant == df$participant[i]
-        & df1$trial == df$trial[i]
-        & df1$N_sim >= df$N[i])
-  }
-  #applying the function
-  df$N_sim <- sapply(1:nrow(df), attwiseProb)
-  #calculating probability
-  df$probability <- df$N_sim / iter
-  #calculating probability complement
-  df$prob_complement <- 1 - df$probability
-  #calculating pattern lenght
-  df$patt_length <- nchar(df$pattern)
-  df
-}
-
-#test7 = probAttwise(test4, test6, 1000)
-
-#calculate SSI ####
-
-computeSSI <- function(df, df1, df3, participant, trial, alternative, attribute) {
-  #calculating string length for each trial
-  df$attribute_clean <- ifelse(df[[alternative]] == shift(df[[alternative]], 1L)
-                               & df[[attribute]] == shift(df[[attribute]], 1L), 1, 0)
-  df <- subset(df, attribute_clean != 1 | is.na(attribute_clean))
-  df[, "attribute_clean" := NULL]
-  stringLength <- ddply(df, .(participant, trial), function(df) length(df$attribute))
-  #calculating numerator for alternative-wise patterns
-  df1$numerator <- df1$N * df1$patt_length * df1$prob_complement
-  df2 <- ddply(df1,.(participant, trial), summarize, altwise_sum = sum(numerator))
-  df2 <- as.data.table(df2)
-  #changing class
-  df2$participant <- as.numeric(df2$participant)
-  df2$trial <- as.numeric(df2$trial)
-  #ordering values within variables
-  df2 <- df2[order(participant, trial),]
-  #merging in trial string leghts
-  df2 <- merge(df2, stringLength, by = c("participant", "trial"), all = T)
-  df2[is.na(df2)] <- 0
-  #calculating numerator for attribute-wise patterns
-  df3$numerator <- df3$N * df3$patt_length * df3$prob_complement
-  df4 <- ddply(df3,.(participant, trial), summarize, attwise_sum = sum(numerator))
-  df4 <- as.data.table(df4)
-  #changing class
-  df4$participant <- as.numeric(df4$participant)
-  df4$trial <- as.numeric(df4$trial)
-  #ordering values within variables
-  df4 <- df4[order(participant, trial),]
-  #merging in trial string lengths
-  df4 <- merge(df4, stringLength, by = c("participant", "trial"), all = T)
-  df4[is.na(df4)] <- 0
-  #merging data sets with alternative and attribute-wise pattern numerators
-  df5 <- merge(df2, df4, by = c("participant", "trial"), all = T)
-  #deleting variable
-  df5$V1.x <- NULL
-  #renaming column
-  setnames(df5, "V1.y", "string_length")
-  #applying SSI equation
-  df5$SSI <- (df5$altwise_sum + df5$attwise_sum) / df5$string_length
-  df5
-}
-
-#test8 = computeSSI(infoSearch, test3, test7, "participant", "trial", "alternative", "attribute")
-
-##################################################
-#a function that wraps all previous functions ####
-
-#identify alternative-wise patterns ####
-computeSSIfast <- function(df, dfRan, participant, trial, alternative, attribute, num_alt, num_att, iter) {
-
-  altwise <- function(df, participant, trial, alternative, attribute) {
-    #create counter variable that assigns a new number whenever the alternative changes
-    df <- setDT(df)[, counter:= rleid(trial, alternative)]
-    #concatenate attribute values into strings
-    #this is done for each alternative, within each trial and for each participant
-    df1 <- df[,list(string <- paste(attribute, collapse = ""),
-                    participant = unique(participant),
-                    trial = unique(trial)), by = counter]
-    #delete counter varibale
-    df1[, "counter" := NULL]
-    #function which keeps unique letters in a string and orders them alphabetically
-    relaxedFreqOrder <- function(i){
+    #function that keeps unique elements and sorts them alphabetically
+    relaxedFreqOrder = function(i){
       paste0(unique(sort(unlist(strsplit(i, "")))), collapse = "")
     }
-    #applying the function
-    df1$string <- lapply(df1$V1, relaxedFreqOrder)
-    #deleting unnecessary variable
-    df1[, "V1" := NULL]
-    #changing class
-    df1$string <- as.character(df1$string)
-    #creating counter variable which identifies identical subsequent strings
-    df1 <- setDT(df1)[, counter:= rleid(string, trial)]
-    #variable that identifies identical subsequent counter variables
-    df1$equalCounter <- ifelse(df1$counter == lag(df1$counter, n = 1L)
-                               | df1$counter == lead(df1$counter, n = 1L), 1, 0)
-    #subset the data
-    df1 <- subset(df1, equalCounter != 0)
-    #keep string of length at least two letters
-    df1 <- subset(df1, nchar(as.character(string)) >= 2)
-    #concatenate strings into patterns using the counter variable
-    df2 <- df1[,list(string <- paste(string, collapse = ""),
-                     participant = unique(participant),
-                     trial = unique(trial)), by = counter]
 
-    #delete counter variable
-    df2[, "counter" := NULL]
-    #count how many times each unique pattern occurs
-    df3 <- as.data.table(with(df2, table(V1, trial, participant)))
-    #subest the data
-    df3 <- subset(df3, N != 0)
-    #rename column
-    setnames(df3, "V1", "pattern")
+    #apply 'relaxedFreqOrder' function
+    df2$string = lapply(df2$string, relaxedFreqOrder)
+
+    #change class
+    df1$string = as.character(df1$string)
+    df1$identElements = as.numeric(df1$identElements)
+    df2$string = as.character(df2$string)
+    df2$identElements = as.numeric(df2$identElements)
+
+    #merge in formatted data set with altwise substrings
+    df1 = anti_join(df1, df2, by = c("counter", "participant", "trial", "identElements")) %>%
+          bind_rows(df2)
+    df1 = df1[order(df1$counter),]
+
+    #create counter variable for alternative-wise substrings based on string variable within each trial
+    df1 = setDT(df1)[, countEqualSubstrings := rleid(string, trial)]
+
+    #if threshold = 4, then compile next two lines, otherwise skip to line 111
+    if (threshold == 4) {
+
+    #create variable that assigns 1 to subsequent equal counter variable values
+    df1$equalCounter = ifelse(df1$countEqualSubstrings == lag(df1$countEqualSubstrings, n = 1L) |
+                              df1$countEqualSubstrings == lead(df1$countEqualSubstrings, n = 1L), 1, 0)
+
+    #subset substrings
+    df1 = df1[df1$equalCounter != 0 | df1$identElements != 0]
+    }
+
+    #combine substrings into patterns using counter variable
+    #i.e., all substrings with equal count should be collapsed into one pattern
+    df2 = df1[,list(pattern = paste(string, collapse = ""),
+                              participant = unique(participant),
+                              trial = unique(trial)), by = countEqualSubstrings]
+
+    #keep substrings of minimum length four
+    df2 = subset(df2, nchar(as.character(pattern)) >= threshold)
+
+    #calculate frequencies for each pattern within each trial and participant
+    df3 = setDT(df2)[, list(pattFreq = .N), by = c('pattern', 'trial', 'participant')]
     df3
   }
 
-  test = altwise(df, "participant", "trial", "alternative", "attribute")
+  test = patterns(infoSearch, "participant", "trial", "alternative", "attribute", 4)
   test
 
-  #alternative-wise pattern simulation ####
-  #the same procedure as for altwise function, just on a randomized data set
-  altwiseSim <- function(dfRan, participant, trial, num_alt, num_att) {
-    #making sure we sample the total number of elements from the original data set
-    sim <- nrow(dfRan)
-    #creating new alternative variable (random)
-    dfRan$alternative <- sample(1:num_alt, sim, T)
-    #creating new attribute variable (random)
-    attset <- letters[1:num_att]
-    dfRan$attribute <- sample(attset, sim, T)
-    dfRan <- setDT(dfRan)[, counter:= rleid(trial, alternative)]
-    dfRan1 <- dfRan[,list(string <- paste(attribute, collapse = ""),
-                          participant = unique(participant),
-                          trial = unique(trial)), by = counter]
-    dfRan1[, "counter" := NULL]
-    relaxedFreqOrder <- function(i){
+  #alternative- and attribute-wise pattern simulation ####
+  #the same procedure as for patterns function, just on a random data set
+
+  patternsSim = function(dfRan, participant, trial, num_alt, num_att, threshold) {
+
+    #change class
+    dfRan = as.data.table(dfRan)
+
+    #number of rows corresponding to number of fixations in original data set (total string length)
+    sim = nrow(dfRan)
+
+    #create new alternative variable (random)
+    dfRan$alternative = sample(1:num_alt, sim, T)
+
+    #create new attribute variable (random)
+    attset = letters[1:num_att]
+    dfRan$attribute = sample(attset, sim, T)
+
+    #delete dwells (subsequent fixations within the same AOI)
+    dfRan$attributeClean = ifelse(dfRan[[trial]] == shift(dfRan[[trial]], 1L)
+                                & dfRan[[alternative]] == shift(dfRan[[alternative]], 1L)
+                                & dfRan[[attribute]] == shift(dfRan[[attribute]], 1L), 1, 0)
+    dfRan = subset(dfRan, attributeClean != 1 | is.na(attributeClean))
+    dfRan$attributeClean = NULL
+
+    #identify alternative- and attribute-wise transitions
+    n = nrow(dfRan)
+    dfRan$transAlt = c(0L, dfRan$trial[-n] == dfRan$trial[-1] & dfRan$alternative[-n] == dfRan$alternative[-1])
+    dfRan$transAtt = c(0L, dfRan$trial[-n] == dfRan$trial[-1] & dfRan$attribute[-n] == dfRan$attribute[-1])
+
+    #create counter variable which will be used for concatenating fixations into substrings
+    dfRan$transDiff = c(0L, dfRan$transAtt[-n] != dfRan$transAtt[-1] & dfRan$transAlt[-n] != dfRan$transAlt[-1])
+    dfRan$diff1 <- c(NA, diff(dfRan$transDiff))
+
+    dfRan$counter = c(1L, dfRan$trial[-n] != dfRan$trial[-1]
+                   | c(dfRan$trial[-n] == dfRan$trial[-1] &
+                         dfRan$alternative[-n] != dfRan$alternative[-1] &
+                         dfRan$attribute[-n] != dfRan$attribute[-1])
+
+                   | c(dfRan$trial[-n] == dfRan$trial[-1] &
+                         dfRan$alternative[-n] != dfRan$alternative[-1] &
+                         dfRan$attribute[-n] == dfRan$attribute[-1] &
+                         dfRan$transAtt[-n] != dfRan$transAtt[-1] &
+                         dfRan$transAlt[-n] != dfRan$transAlt[-1] &
+                         dfRan$transDiff[-n] != dfRan$transDiff[-1] &
+                         dfRan$diff1[-n] != dfRan$diff1[-1])
+
+                   | c(dfRan$trial[-n] == dfRan$trial[-1] &
+                         dfRan$alternative[-n] != dfRan$alternative[-1] &
+                         dfRan$attribute[-n] == dfRan$attribute[-1] &
+                         dfRan$transAtt[-n] != dfRan$transAtt[-1] &
+                         dfRan$transAlt[-n] != dfRan$transAlt[-1] &
+                         dfRan$transDiff[-n] == dfRan$transDiff[-1] &
+                         dfRan$diff1[-n] == dfRan$diff1[-1])
+
+                   | c(dfRan$trial[-n] == dfRan$trial[-1] &
+                         dfRan$alternative[-n] == dfRan$alternative[-1] &
+                         dfRan$attribute[-n] != dfRan$attribute[-1] &
+                         dfRan$transAtt[-n] != dfRan$transAtt[-1] &
+                         dfRan$transAlt[-n] != dfRan$transAlt[-1] &
+                         dfRan$transDiff[-n] != dfRan$transDiff[-1]))
+    dfRan$counter = cumsum(dfRan$counter)
+
+    #create alternative- and attribute-wise substrings based on counter variable
+    dfRan1 = dfRan[, list(string = paste(attribute, collapse = ""),
+                    participant = unique(participant),
+                    trial = unique(trial)), by = counter]
+
+    #function that identifies rows with identical elements only
+    identElements = function(i){
+      length(unique(unlist(strsplit(i, "")))) == 1
+    }
+
+    #apply 'identElements' function
+    dfRan1$identElements = lapply(dfRan1$string, identElements)
+
+    #subset data with alternative-wise substrings only
+    dfRan2 = subset(dfRan1, identElements == "FALSE")
+
+    #function that keeps unique elements and sorts them alphabetically
+    relaxedFreqOrder = function(i){
       paste0(unique(sort(unlist(strsplit(i, "")))), collapse = "")
     }
-    dfRan1$string <- lapply(dfRan1$V1, relaxedFreqOrder)
-    dfRan1[, "V1" := NULL]
-    dfRan1$string <- as.character(dfRan1$string)
-    dfRan1 <- setDT(dfRan1)[, counter:= rleid(string, trial)]
-    dfRan1$equalCounter <- ifelse(dfRan1$counter == lag(dfRan1$counter, n = 1L)
-                                  | dfRan1$counter == lead(dfRan1$counter, n = 1L), 1, 0)
-    dfRan1 <- subset(dfRan1, equalCounter != 0)
-    dfRan1 <- subset(dfRan1, nchar(as.character(string)) >= 2)
-    dfRan2 <- dfRan1[,list(string <- paste(string, collapse = ""),
-                           participant = unique(participant),
-                           trial = unique(trial)), by = counter]
 
-    dfRan2[, "counter" := NULL]
-    dfRan3 <- as.data.table(with(dfRan2, table(V1, trial, participant)))
-    dfRan3 <- subset(dfRan3, N != 0)
-    colnames(dfRan3)[c(1,4)] <- c("pattern", "N_sim")
+    #apply 'relaxedFreqOrder' function
+    dfRan2$string = lapply(dfRan2$string, relaxedFreqOrder)
+
+    #change class
+    dfRan1$string = as.character(dfRan1$string)
+    dfRan1$identElements = as.numeric(dfRan1$identElements)
+    dfRan2$string = as.character(dfRan2$string)
+    dfRan2$identElements = as.numeric(dfRan2$identElements)
+
+    #merge in formatted data set with altwise substrings
+    dfRan1 = anti_join(dfRan1, dfRan2, by = c("counter", "participant", "trial", "identElements")) %>%
+             bind_rows(dfRan2)
+    dfRan1 = dfRan1[order(dfRan1$counter),]
+
+    #create counter variable for alternative-wise substrings based on string variable within each trial
+    dfRan1 = setDT(dfRan1)[, countEqualSubstrings := rleid(string, trial)]
+
+    #if threshold = 4, then compile next two lines, otherwise skip to line 111
+    if (threshold == 4) {
+
+      #create variable that assigns 1 to subsequent equal counter variable values
+      dfRan1$equalCounter = ifelse(dfRan1$countEqualSubstrings == lag(dfRan1$countEqualSubstrings, n = 1L) |
+                                  dfRan1$countEqualSubstrings == lead(dfRan1$countEqualSubstrings, n = 1L), 1, 0)
+
+      #subset substrings
+      dfRan1 = dfRan1[dfRan1$equalCounter != 0 | dfRan1$identElements != 0]
+    }
+
+    #combine substrings into patterns using counter variable
+    #i.e., all substrings with equal count should be collapsed into one pattern
+    dfRan2 = dfRan1[,list(pattern = paste(string, collapse = ""),
+                    participant = unique(participant),
+                    trial = unique(trial)), by = countEqualSubstrings]
+
+    #keep substrings of minimum length four
+    dfRan2 = subset(dfRan2, nchar(as.character(pattern)) >= threshold)
+
+    #calculate frequencies for each pattern within each trial and participant
+    dfRan3 = setDT(dfRan2)[, list(N = .N), by = c('pattern', 'trial', 'participant')]
     dfRan3
   }
 
-  test1 = altwiseSim(df, "participant", "trial", num_alt, num_att)
+  test1 = patternsSim(infoSearch, "participant", "trial", 4, 4, 4)
+  test1
 
-  #replicate 'altwiseSim' function n times ####
+  #replicate 'patternsSim' function n times ####
 
-  altwiseSimRep <- function(dfRan, participant, trial, num_alt, num_att, iter) {
-    do.call(rbind, lapply(1:iter, function(i) altwiseSim(dfRan, participant, trial, num_alt, num_att)))
+  patternsSimRep = function(dfRan, participant, trial, num_alt, num_att, iter) {
+    do.call(rbind, lapply(1:iter, function(i) patternsSim(dfRan, participant, trial, num_alt, num_att, threshold)))
   }
 
-  test2 = altwiseSimRep(dfRan,"participant", "trial", num_alt, num_att, iter)
-  test2
+  test2 = patternsSimRep(dfRan, "participant", "trial", num_alt, num_att, iter)
 
-  #calculate probabilities and probability complements for alternative-wise patterns ####
+  #calculate probabilities and probability complements ####
 
-  probAltwise <- function(df, df1, iter) {
-    #creating a function which will compare original data set with randomized data sets
-    altwiseProb <- function(i){
+  #function which compares pattern frequencies in original and simulated data sets for each participant, condition and trial
+  patternsProb = function(df, df1, iter) {
+
+    probPatterns = function(i) {
       sum(df1$pattern == df$pattern[i]
           & df1$participant == df$participant[i]
           & df1$trial == df$trial[i]
-          & df1$N_sim >= df$N[i])
+          & df1$N >= df$pattFreq[i])
     }
-    #applying the function
-    df$N_sim <- sapply(1:nrow(df), altwiseProb)
-    #calculating probability
-    df$probability <- df$N_sim / iter
-    #calculating probability complement
-    df$prob_complement <- 1 - df$probability
-    #calculating pattern length
-    df$patt_length <- nchar(df$pattern)
+
+    #apply 'probPatterns' function
+    df$pattFreqSim = sapply(1:nrow(df), probPatterns)
+
+    #calculate probabilities
+    df$probability = df$pattFreqSim / iter
+
+    #calculate probability complements
+    df$prob_complement = 1 - df$probability
+
+    #calculate pattern lenghts
+    df$pattLength = nchar(df$pattern)
     df
+
+    #save table
+    #in case we want to perform some data analyses without doing simulation again
+    write.csv(file="patterns.csv", x = df)
   }
 
-  test3 = probAltwise(test, test2, iter)
-  test3
+  test3 = patternsProb(test, test2, iter)
 
-  #identify attribute-wise patterns ####
+  #apply SSI equation ####
 
-  attwise <- function(df, participant, trial, alternative, attribute) {
-    #deleting dwells (subsequent fixations within the same AOI)
-    df$attribute_clean <- ifelse(df[[alternative]] == shift(df[[alternative]], 1L)
-                                 & df[[attribute]] == shift(df[[attribute]], 1L), 1, 0)
-    df <- subset(df, attribute_clean != 1 | is.na(attribute_clean))
-    df[, "attribute_clean" := NULL]
-    #creating counter variable which identifies fixation change for attributes (fixating on a new attribute)
-    df <- setDT(df)[, counterAttwise:= rleid(trial, attribute)]
-    df1 <- df[,list(string <- paste(attribute, collapse = ""),
-                    participant = unique(participant),
-                    trial = unique(trial)), by = counterAttwise]
-    #subseting patterns of length 3 or less
-    df1 <- subset(df1, nchar(as.character(V1)) >= 4)
-    #deleting unnecessary variable
-    df1[, "counterAttwise" := NULL]
-    #counting occurrences of unique patterns
-    df2 <- as.data.table(with(df1, table(V1, trial, participant)))
-    df2 <- subset(df2, N != 0)
-    #renaming column
-    setnames(df2, "V1", "pattern")
+  applySSIequation = function(df, df1, participant, trial, alternative, attribute) {
+
+    #calculate string length for each trial
+    df$attributeClean = ifelse(df[[trial]] == shift(df[[trial]], 1L)
+                               & df[[alternative]] == shift(df[[alternative]], 1L)
+                               & df[[attribute]] == shift(df[[attribute]], 1L), 1, 0)
+    df = subset(df, attributeClean != 1 | is.na(attributeClean))
+    df[, "attributeClean" := NULL]
+    setkey(df, "participant", "trial")
+    stringLength = df[, list(N = NROW(attribute)), by = key(df)]
+
+    #calculate numerator for SSI
+    df1$numerator = df1$pattLength * df1$pattFreq * df1$probComplement
+    setkey(df1, "participant", "trial")
+    df2 = df1[, list(patternSum = sum(numerator)), by = key(df1)]
+
+    #format data
+    df2 = as.data.table(df2)
+    df2$participant = as.numeric(df2$participant)
+    df2$trial = as.numeric(df2$trial)
+    df2 = df2[order(participant, trial),]
+
+    #merge in trial string leghts
+    df2 = merge(df2, stringLength, by = c("participant", "trial"), all = T)
+    df2[is.na(df2)] = 0
+
+    #compute SSI
+    df2$SSI = df2$patternSum / df2$N
     df2
   }
 
-  test4 = attwise(df, "participant", "trial", "alternative", "attribute")
-
-  #attribute-wise pattern simulation ####
-
-  #the same procesure as for attwise function, just for randomized data set
-  attwiseSim <- function(dfRan, participant, trial, num_alt, num_att) {
-    #making sure we sample the total number of elements from the original data set
-    sim <- nrow(df)
-    #creating new alternative variable (random)
-    dfRan$alternative <- sample(1:num_alt, sim, T)
-    #creating new attribute variable (random)
-    attset <- letters[1:num_att]
-    dfRan$attribute <- sample(attset, sim, T)
-    dfRan$attribute_clean <- ifelse(dfRan$alternative == shift(dfRan$alternative, 1L)
-                                    & dfRan$attribute == shift(dfRan$attribute, 1L), 1, 0)
-    dfRan <- subset(dfRan, attribute_clean != 1 | is.na(attribute_clean))
-    dfRan[, "attribute_clean" := NULL]
-    dfRan <- setDT(dfRan)[, counter:= rleid(trial, attribute)]
-    dfRan1 <- dfRan[,list(string <- paste(attribute, collapse = ""),
-                          participant = unique(participant),
-                          trial = unique(trial)), by = counter]
-    dfRan1 <- subset(dfRan1, nchar(as.character(V1)) >= 4)
-    dfRan1[, "counter" := NULL]
-    dfRan2 <- as.data.table(with(dfRan1, table(V1, trial, participant)))
-    dfRan2 <- subset(dfRan2, N != 0)
-    colnames(dfRan2)[c(1,4)] <- c("pattern", "N_sim")
-    dfRan2
-  }
-
-  #replicate 'attwiseSim' function n times ####
-
-  attwiseSimRep <- function(dfRan, participant, trial, num_alt, num_att, iter) {
-    do.call(rbind, lapply(1:iter, function(i) attwiseSim(dfRan, participant, trial, num_alt, num_att)))
-  }
-
-  test6 = attwiseSimRep(dfRan, "participant", "trial", num_alt, num_att, iter)
-  test6
-
-  #calculate probabilities and probability complements for attribute-wise patterns####
-
-  #creating a function which will compare original data set with randomized data sets
-  probAttwise <- function(df, df1, iter) {
-    attwiseProb <- function(i){
-      sum(df1$pattern == df$pattern[i]
-          & df1$participant == df$participant[i]
-          & df1$trial == df$trial[i]
-          & df1$N_sim >= df$N[i])
-    }
-    #applying the function
-    df$N_sim <- sapply(1:nrow(df), attwiseProb)
-    #calculating probability
-    df$probability <- df$N_sim / iter
-    #calculating probability complement
-    df$prob_complement <- 1 - df$probability
-    #calculating pattern lenght
-    df$patt_length <- nchar(df$pattern)
-    df
-  }
-
-  test7 = probAttwise(test4, test6, iter)
-  test7
-
-  #calculate SSI ####
-
-  computeSSI <- function(df, df1, df3, participant, trial, alternative, attribute) {
-    #calculating string length for each trial
-    df$attribute_clean <- ifelse(df[[alternative]] == shift(df[[alternative]], 1L)
-                                 & df[[attribute]] == shift(df[[attribute]], 1L), 1, 0)
-    df <- subset(df, attribute_clean != 1 | is.na(attribute_clean))
-    df[, "attribute_clean" := NULL]
-    stringLength <- ddply(df, .(participant, trial), function(df) length(df$attribute))
-    #calculating numerator for alternative-wise patterns
-    df1$numerator <- df1$N * df1$patt_length * df1$prob_complement
-    df2 <- ddply(df1,.(participant, trial), summarize, altwise_sum = sum(numerator))
-    df2 <- as.data.table(df2)
-    #changing class
-    df2$participant <- as.numeric(df2$participant)
-    df2$trial <- as.numeric(df2$trial)
-    #ordering values within variables
-    df2 <- df2[order(participant, trial),]
-    #merging in trial string leghts
-    df2 <- merge(df2, stringLength, by = c("participant", "trial"), all = T)
-    df2[is.na(df2)] <- 0
-    #calculating numerator for attribute-wise patterns
-    df3$numerator <- df3$N * df3$patt_length * df3$prob_complement
-    df4 <- ddply(df3,.(participant, trial), summarize, attwise_sum = sum(numerator))
-    df4 <- as.data.table(df4)
-    #changing class
-    df4$participant <- as.numeric(df4$participant)
-    df4$trial <- as.numeric(df4$trial)
-    #ordering values within variables
-    df4 <- df4[order(participant, trial),]
-    #merging in trial string lengths
-    df4 <- merge(df4, stringLength, by = c("participant", "trial"), all = T)
-    df4[is.na(df4)] <- 0
-    #merging data sets with alternative and attribute-wise pattern numerators
-    df5 <- merge(df2, df4, by = c("participant", "trial"), all = T)
-    #deleting variable
-    df5$V1.x <- NULL
-    #renaming column
-    setnames(df5, "V1.y", "string_length")
-    #applying SSI equation
-    df5$SSI <- (df5$altwise_sum + df5$attwise_sum) / df5$string_length
-    df5
-  }
-
-  test8 = computeSSI(df, test3, test7, "participant", "trial", "alternative", "attribute")
-  test8
+  test4 = applySSIequation(df, test3, "participant", "trial", "alternative", "attribute")
 }
 
-#test_final = computeSSIfast(infoSearch, infoSearch, "participant", "trial", "alternative", "attribute", 4, 4, 400)
+#test = computeSSI(infoSearch, infoSearch, "participant", "trial", "alternative", "attribute", 4, 4, 400)
 
 
 
