@@ -1,6 +1,7 @@
 #' A function that computes Systematicity of Search Index (SSI)
 #'
-#' Integrates all the necessary functions and computes the SSI. The number of alternatives and attributes, simulations as well as the minimum threshold for pattern length can be adjusted.
+#' Integrates all the necessary functions and computes the SSI. The number of alternatives and attributes, simulations
+#' as well as the minimum threshold for pattern length can be adjusted.
 #'
 #' @param df Object of class data frame
 #' @param dfRan The same object used for creating random data.
@@ -19,9 +20,13 @@
 #' @keywords SSI
 #'
 #' @examples
-#' #IMPORTANT! Variables representing participants, trials, alternatives and attributes in your data should have the names that match the ones in the example below!
+#' #IMPORTANT! Variables representing participants, trials, alternatives and attributes in your data should have the names
+#' that match the ones in the example below!
 #'
-#' dataSet <- data.frame(participant = rep(c(1:50), each = 400), trial = rep(c(1:200), each = 100), alternative = sample(1:4, 20000, TRUE), attribute = sample(c("a","b","c","d"), 20000, TRUE))
+#' dataSet <- data.frame(participant = rep(c(1:50), each = 400),
+#'                       trial = rep(c(1:200), each = 100),
+#'                       alternative = sample(1:4, 20000, TRUE),
+#'                       attribute = sample(c("a","b","c","d"), 20000, TRUE))
 #'
 #' SSI <- computeSSI(dataSet, dataSet, "participant", "trial", "alternative", "attribute", 4, 4, 4, 10)
 #'
