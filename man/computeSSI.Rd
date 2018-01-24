@@ -40,9 +40,9 @@ The number of alternatives, attributes, simulations and the minimum threshold fo
 
 \dontrun{
 df <- data.frame(participant = rep(c(1:50), each = 400),
-                      trial = rep(c(1:200), each = 100),
-                      alternative = sample(1:4, 20000, TRUE),
-                      attribute = sample(c("a","b","c","d"), 20000, TRUE))
+                 trial = rep(c(1:200), each = 100),
+                 alternative = sample(1:4, 20000, TRUE),
+                 attribute = sample(c("a","b","c","d"), 20000, TRUE))
 
 SSI <- computeSSI(df, df, "participant", "trial", "alternative", "attribute", 4, 4, 4, 1000)
 }

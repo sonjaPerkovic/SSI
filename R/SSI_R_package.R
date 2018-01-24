@@ -24,9 +24,9 @@
 #'
 #' \dontrun{
 #' df <- data.frame(participant = rep(c(1:50), each = 400),
-#'                       trial = rep(c(1:200), each = 100),
-#'                       alternative = sample(1:4, 20000, TRUE),
-#'                       attribute = sample(c("a","b","c","d"), 20000, TRUE))
+#'                  trial = rep(c(1:200), each = 100),
+#'                  alternative = sample(1:4, 20000, TRUE),
+#'                  attribute = sample(c("a","b","c","d"), 20000, TRUE))
 #'
 #' SSI <- computeSSI(df, df, "participant", "trial", "alternative", "attribute", 4, 4, 4, 1000)
 #' }
@@ -49,7 +49,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df = as.data.table(df)
 
     #delete dwells (subsequent fixations within the same AOI)
-    df$attributeClean = NULL
+    attributeClean = 0
     df$attributeClean = ifelse(df$trial == shift(df$trial, 1L)
                              & df$alternative == shift(df$alternative, 1L)
                              & df$attribute == shift(df$attribute, 1L), 1, 0)
@@ -65,6 +65,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df$transDiff = c(0L, df$transAtt[-n] != df$transAtt[-1] & df$transAlt[-n] != df$transAlt[-1])
     df$diff1 <- c(NA, diff(df$transDiff))
 
+    counter = 0
     df$counter = c(1L, df$trial[-n] != df$trial[-1]
                      | c(df$trial[-n] == df$trial[-1] &
                          df$alternative[-n] != df$alternative[-1] &
@@ -95,6 +96,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df$counter = cumsum(df$counter)
 
     #create alternative- and attribute-wise substrings based on counter variable
+    string = 0
     df1 = df[, list(string = paste(attribute, collapse = ""),
                                    participant = unique(participant),
                                    trial = unique(trial)), by = counter]
@@ -131,6 +133,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     setnames(df1, "string.y", "string")
 
     #create counter variable for alternative-wise substrings based on string variable within each trial
+    countEqualSubstrings = 0
     df1 = setDT(df1)[, countEqualSubstrings := rleid(string, trial)]
 
     #if threshold = 4, then compile next two lines, otherwise skip to line 111
@@ -146,6 +149,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
 
     #combine substrings into patterns using counter variable
     #i.e., all substrings with equal count should be collapsed into one pattern
+    pattern = 0
     df2 = df1[,list(pattern = paste(string, collapse = ""),
                               participant = unique(participant),
                               trial = unique(trial)), by = countEqualSubstrings]
@@ -180,6 +184,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     dfRan$attribute = sample(attset, sim, T)
 
     #delete dwells (subsequent fixations within the same AOI)
+    attributeClean = 0
     dfRan$attributeClean = ifelse(dfRan$trial == shift(dfRan$trial, 1L)
                                 & dfRan$alternative == shift(dfRan$alternative, 1L)
                                 & dfRan$attribute == shift(dfRan$attribute, 1L), 1, 0)
@@ -195,6 +200,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     dfRan$transDiff = c(0L, dfRan$transAtt[-n] != dfRan$transAtt[-1] & dfRan$transAlt[-n] != dfRan$transAlt[-1])
     dfRan$diff1 <- c(NA, diff(dfRan$transDiff))
 
+    counter = 0
     dfRan$counter = c(1L, dfRan$trial[-n] != dfRan$trial[-1]
                    | c(dfRan$trial[-n] == dfRan$trial[-1] &
                          dfRan$alternative[-n] != dfRan$alternative[-1] &
@@ -225,9 +231,10 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     dfRan$counter = cumsum(dfRan$counter)
 
     #create alternative- and attribute-wise substrings based on counter variable
+    string = 0
     dfRan1 = dfRan[, list(string = paste(attribute, collapse = ""),
-                    participant = unique(participant),
-                    trial = unique(trial)), by = counter]
+                          participant = unique(participant),
+                          trial = unique(trial)), by = counter]
 
     #function that identifies rows with identical elements only
     identElements = function(i){
@@ -261,6 +268,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     setnames(dfRan1, "string.y", "string")
 
     #create counter variable for alternative-wise substrings based on string variable within each trial
+    countEqualSubstrings = 0
     dfRan1 = setDT(dfRan1)[, countEqualSubstrings := rleid(string, trial)]
 
     #if threshold = 4, then compile next two lines, otherwise skip to line 111
@@ -276,9 +284,10 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
 
     #combine substrings into patterns using counter variable
     #i.e., all substrings with equal count should be collapsed into one pattern
+    pattern = 0
     dfRan2 = dfRan1[,list(pattern = paste(string, collapse = ""),
-                    participant = unique(participant),
-                    trial = unique(trial)), by = countEqualSubstrings]
+                          participant = unique(participant),
+                          trial = unique(trial)), by = countEqualSubstrings]
 
     #keep substrings of minimum length four
     dfRan2 = subset(dfRan2, nchar(as.character(pattern)) >= threshold)
@@ -337,6 +346,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df = as.data.table(df)
 
     #calculate string length for each trial
+    attributeClean = 0
     df$attributeClean = ifelse(df$trial == shift(df$trial, 1L)
                                & df$alternative == shift(df$alternative, 1L)
                                & df$attribute == shift(df$attribute, 1L), 1, 0)
@@ -346,6 +356,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     stringLength = df[, list(N = NROW(attribute)), by = key(df)]
 
     #calculate numerator for SSI
+    numerator = 0
     df1$numerator = df1$pattLength * df1$pattFreq * df1$probComplement
     setkey(df1, "participant", "trial")
     df2 = df1[, list(patternSum = sum(numerator)), by = key(df1)]
