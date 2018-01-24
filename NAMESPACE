@@ -1,5 +1,3 @@
-exportPattern("^[[:alpha:]]+")
+export(computeSSI)
 importFrom("utils", "write.csv")
-
 import(data.table)
-import(dplyr)

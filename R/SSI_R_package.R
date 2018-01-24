@@ -1,3 +1,6 @@
+#' @export
+#' @example
+
 #simulate data
 #infoSearch = data.frame(participant=rep(c(1:50), each = 400), trial=rep(c(1:200), each = 100), alternative = sample(1:4, 20000, T), attribute = sample(c("a","b","c","d"), 20000, T))
 
@@ -88,9 +91,10 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df2$identElements = as.numeric(df2$identElements)
 
     #merge in formatted data set with altwise substrings
-    df1 = anti_join(df1, df2, by = c("counter", "participant", "trial", "identElements")) %>%
-          bind_rows(df2)
-    df1 = df1[order(df1$counter),]
+    df1 = merge(df1, df2, by = c("counter", "participant", "trial", "identElements"), all.x = T)
+    df1$string.y = ifelse(is.na(df1$string.y), df1$string.x, df1$string.y)
+    df1$string.x = NULL
+    setnames(df1, "string.y", "string")
 
     #create counter variable for alternative-wise substrings based on string variable within each trial
     df1 = setDT(df1)[, countEqualSubstrings := rleid(string, trial)]
@@ -99,8 +103,8 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     if (threshold == 4) {
 
     #create variable that assigns 1 to subsequent equal counter variable values
-    df1$equalCounter = ifelse(df1$countEqualSubstrings == lag(df1$countEqualSubstrings, n = 1L) |
-                              df1$countEqualSubstrings == lead(df1$countEqualSubstrings, n = 1L), 1, 0)
+    df1$equalCounter = ifelse(df1$countEqualSubstrings == shift(df1$countEqualSubstrings, 1L) |
+                              df1$countEqualSubstrings == shift(df1$countEqualSubstrings, 1L, type = "lead"), 1, 0)
 
     #subset substrings
     df1 = df1[df1$equalCounter != 0 | df1$identElements != 0]
@@ -217,9 +221,10 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     dfRan2$identElements = as.numeric(dfRan2$identElements)
 
     #merge in formatted data set with altwise substrings
-    dfRan1 = anti_join(dfRan1, dfRan2, by = c("counter", "participant", "trial", "identElements")) %>%
-             bind_rows(dfRan2)
-    dfRan1 = dfRan1[order(dfRan1$counter),]
+    dfRan1 = merge(dfRan1, dfRan2, by = c("counter", "participant", "trial", "identElements"), all.x = T)
+    dfRan1$string.y = ifelse(is.na(dfRan1$string.y), dfRan1$string.x, dfRan1$string.y)
+    dfRan1$string.x = NULL
+    setnames(dfRan1, "string.y", "string")
 
     #create counter variable for alternative-wise substrings based on string variable within each trial
     dfRan1 = setDT(dfRan1)[, countEqualSubstrings := rleid(string, trial)]
@@ -228,8 +233,8 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     if (threshold == 4) {
 
       #create variable that assigns 1 to subsequent equal counter variable values
-      dfRan1$equalCounter = ifelse(dfRan1$countEqualSubstrings == lag(dfRan1$countEqualSubstrings, n = 1L) |
-                                  dfRan1$countEqualSubstrings == lead(dfRan1$countEqualSubstrings, n = 1L), 1, 0)
+      dfRan1$equalCounter = ifelse(dfRan1$countEqualSubstrings == shift(dfRan1$countEqualSubstrings, 1L) |
+                                  dfRan1$countEqualSubstrings == shift(dfRan1$countEqualSubstrings, 1L, type = "lead"), 1, 0)
 
       #subset substrings
       dfRan1 = dfRan1[dfRan1$equalCounter != 0 | dfRan1$identElements != 0]
@@ -330,8 +335,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
   test4
 
   #save table
-  #in case we want to perform some data analyses without doing simulation again
-  write.csv(file="SSI.csv", x = test4)
+  write.csv(file = "SSI.csv", x = test4)
 }
 
 #testFinal = computeSSI(infoSearch, infoSearch, "participant", "trial", "alternative", "attribute", 4, 4, 2, 100)

@@ -1,12 +1,12 @@
 Package: SSI
 Type: Package
 Title: The package provides the function to compute the Systematicty of Search Index (SSI)
-Version: 0.1.0
-Imports: data.table, dplyr
+Version: 0.1.1
+Imports: data.table
 Author: Sonja Perkovic
 Maintainer: Sonja Perkovic <bnsp@leeds.ac.uk>
 Description: The package provides the function to compute the Systematicity of Search Index (SSI).  The function identifies alternative- and attribute-wise patterns in a sequence of eye fixations. The SSI measures the proportion of systematic or non-random search and it is a useful measure for exploring information search behavior.
-License: GPL-3 + MIT + file LICENSE
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Suggests: testthat
+Suggests: parallel, testthat
