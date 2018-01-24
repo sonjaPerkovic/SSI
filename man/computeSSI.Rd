@@ -37,9 +37,14 @@ Integrates all the necessary functions and computes the SSI. The number of alter
 \examples{
 #IMPORTANT! Variable names in your data set should match to the ones in the example below!
 
-dataSet <- data.frame(participant = rep(c(1:50), each = 400), trial = rep(c(1:200), each = 100), alternative = sample(1:4, 20000, TRUE), attribute = sample(c("a","b","c","d"), 20000, TRUE))
+\dontrun{
+dataSet <- data.frame(participant = rep(c(1:50), each = 400),
+                      trial = rep(c(1:200), each = 100),
+                      alternative = sample(1:4, 20000, TRUE),
+                      attribute = sample(c("a","b","c","d"), 20000, TRUE))
 
 SSI <- computeSSI(dataSet, dataSet, "participant", "trial", "alternative", "attribute", 4, 4, 4, 10)
+}
 
 }
 \author{
