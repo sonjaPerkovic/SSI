@@ -2,4 +2,4 @@
 
 export(computeSSI)
 import(data.table)
-importFrom("utils", "write.csv")
+import(utils)

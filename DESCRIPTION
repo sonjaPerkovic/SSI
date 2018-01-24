@@ -1,7 +1,7 @@
 Package: SSI
 Type: Package
 Title: The package provides the function to compute the Systematicty of Search Index (SSI)
-Version: 0.1.1
+Version: 0.1.2
 Imports: data.table
 Author: Sonja Perkovic
 Maintainer: Sonja Perkovic <bnsp@leeds.ac.uk>
