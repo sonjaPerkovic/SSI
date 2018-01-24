@@ -32,18 +32,19 @@ computeSSI(df, dfRan, participant, trial, alternative, attribute, num_alt,
 A data set with SSI values for all identified alternative- and attribute-wise patterns.
 }
 \description{
-Integrates all the necessary functions and computes the SSI. The number of alternatives and attributes, simulations as well as the minimum threshold for pattern length can be adjusted.
+Integrates all the necessary functions and computes the SSI.
+The number of alternatives, attributes, simulations and the minimum threshold for pattern length can be adjusted.
 }
 \examples{
 #IMPORTANT! Variable names in your data set should match to the ones in the example below!
 
 \dontrun{
-dataSet <- data.frame(participant = rep(c(1:50), each = 400),
+df <- data.frame(participant = rep(c(1:50), each = 400),
                       trial = rep(c(1:200), each = 100),
                       alternative = sample(1:4, 20000, TRUE),
                       attribute = sample(c("a","b","c","d"), 20000, TRUE))
 
-SSI <- computeSSI(dataSet, dataSet, "participant", "trial", "alternative", "attribute", 4, 4, 4, 10)
+SSI <- computeSSI(df, df, "participant", "trial", "alternative", "attribute", 4, 4, 4, 1000)
 }
 
 }

@@ -1,6 +1,7 @@
 #' A function that computes Systematicity of Search Index (SSI)
 #'
-#' Integrates all the necessary functions and computes the SSI. The number of alternatives and attributes, simulations as well as the minimum threshold for pattern length can be adjusted.
+#' @description  Integrates all the necessary functions and computes the SSI.
+#' The number of alternatives, attributes, simulations and the minimum threshold for pattern length can be adjusted.
 #'
 #' @param df Object of class data frame
 #' @param dfRan The same object used for creating random data.
@@ -22,18 +23,19 @@
 #' #IMPORTANT! Variable names in your data set should match to the ones in the example below!
 #'
 #' \dontrun{
-#' dataSet <- data.frame(participant = rep(c(1:50), each = 400),
+#' df <- data.frame(participant = rep(c(1:50), each = 400),
 #'                       trial = rep(c(1:200), each = 100),
 #'                       alternative = sample(1:4, 20000, TRUE),
 #'                       attribute = sample(c("a","b","c","d"), 20000, TRUE))
 #'
-#' SSI <- computeSSI(dataSet, dataSet, "participant", "trial", "alternative", "attribute", 4, 4, 4, 10)
+#' SSI <- computeSSI(df, df, "participant", "trial", "alternative", "attribute", 4, 4, 4, 1000)
 #' }
 #'
 #' @export
 #'
 #' @import data.table
 #' @import utils
+#'
 
 #a function that wraps all necessary functions and computes SSI
 
@@ -47,6 +49,7 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
     df = as.data.table(df)
 
     #delete dwells (subsequent fixations within the same AOI)
+    df$attributeClean = NULL
     df$attributeClean = ifelse(df$trial == shift(df$trial, 1L)
                              & df$alternative == shift(df$alternative, 1L)
                              & df$attribute == shift(df$attribute, 1L), 1, 0)
