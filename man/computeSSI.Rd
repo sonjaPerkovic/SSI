@@ -3,11 +3,11 @@
 \title{A function that computes SSI
 }
 \description{
-cat(This function integrates all the necessary functions and computes the SSI.
+This function integrates all the necessary functions and computes the SSI.\cr
 It also creates a file with the SSI values for all the alternative- and
 attribute-wise patterns found. The number of alternatives and attributes,
 simulations as well as the minimum threshold for pattern length can be
-adjusted by setting the function parameters.)
+adjusted by setting the function parameters.
 }
 \usage{
 computeSSI(df, dfRan, participant, trial, alternative,
