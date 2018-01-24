@@ -1,6 +1,6 @@
 #' A function that computes Systematicity of Search Index (SSI)
 #'
-#' Integrates all the necessary functions and computes the SSI. \cr The number of alternatives and attributes, simulations as well as the minimum threshold \cr for pattern length can be adjusted.
+#' Integrates all the necessary functions and computes the SSI. The number of alternatives and attributes, simulations as well as the minimum threshold for pattern length can be adjusted.
 #'
 #' @param df Object of class data frame
 #' @param dfRan The same object used for creating random data.

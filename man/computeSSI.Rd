@@ -32,7 +32,7 @@ computeSSI(df, dfRan, participant, trial, alternative, attribute, num_alt,
 A data set with SSI values for all identified alternative- and attribute-wise patterns.
 }
 \description{
-Integrates all the necessary functions and computes the SSI. \cr The number of alternatives and attributes, simulations as well as the minimum threshold \cr for pattern length can be adjusted.
+Integrates all the necessary functions and computes the SSI. The number of alternatives and attributes, simulations as well as the minimum threshold for pattern length can be adjusted.
 }
 \examples{
 #IMPORTANT! Variable names in your data set should match to the ones in the example below!
