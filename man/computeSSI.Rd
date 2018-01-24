@@ -39,7 +39,7 @@ attribute, num_alt, num_att, threshold, iter)
 Sonja Perkovic
 }
 \examples{
-#IMPORTANT! Variables representing participants, trials, alternatives and attributes in your data should have the names\cr that match the ones in the example below!
+#IMPORTANT! Variables representing participants, trials, alternatives and attributes in your data should have the names\newcommand{deqn}[2]{\begin{eqnarray*}#1end{eqnarray*}} that match the ones in the example below!
 
 dataSet <- data.frame(participant = rep(c(1:50), each = 400), trial = rep(c(1:200), each = 100), alternative = sample(1:4, 20000, TRUE), attribute = sample(c("a","b","c","d"), 20000, TRUE))
 
