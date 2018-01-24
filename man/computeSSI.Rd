@@ -3,7 +3,7 @@
 \title{A function that computes SSI
 }
 \description{
-This function integrates all the necessary functions and computes the SSI.\cr
+This function integrates all the necessary functions and computes the SSI.
 It also creates a file with the SSI values for all the alternative- and
 attribute-wise patterns found. The number of alternatives and attributes,
 simulations as well as the minimum threshold for pattern length can be
@@ -39,7 +39,7 @@ attribute, num_alt, num_att, threshold, iter)
 Sonja Perkovic
 }
 \examples{
-#IMPORTANT! Variables representing participants, trials, alternatives and attributes in your data should have the names that match the ones in the example below!
+#IMPORTANT! Variables representing participants, trials, alternatives and attributes in your data should have the names\cr that match the ones in the example below!
 
 dataSet <- data.frame(participant = rep(c(1:50), each = 400), trial = rep(c(1:200), each = 100), alternative = sample(1:4, 20000, TRUE), attribute = sample(c("a","b","c","d"), 20000, TRUE))
 
