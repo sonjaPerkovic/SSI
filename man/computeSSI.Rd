@@ -35,8 +35,7 @@ A data set with SSI values for all identified alternative- and attribute-wise pa
 Integrates all the necessary functions and computes the SSI.\cr The number of alternatives and attributes, simulations as well as the minimum threshold\cr for pattern length can be adjusted.
 }
 \examples{
-#IMPORTANT! Variables representing participants, trials, alternatives and attributes in your data should have the names \\cr
-#that match the ones in the example below!
+#IMPORTANT! Variables names in your data set should match to the ones in the example below!
 
 dataSet <- data.frame(participant = rep(c(1:50), each = 400), trial = rep(c(1:200), each = 100), alternative = sample(1:4, 20000, TRUE), attribute = sample(c("a","b","c","d"), 20000, TRUE))
 
