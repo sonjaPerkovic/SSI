@@ -29,7 +29,7 @@ computeSSI(df, dfRan, participant, trial, alternative, attribute, num_alt,
 \item{iter}{Number of simulation iterations.}
 }
 \value{
-A data set with SSI values for all identified alternative- and attribute-wise patterns.
+A data set with all identified alternative- and attribute-wise patterns and a data set with all corresponding SSI values.
 }
 \description{
 Integrates all the necessary functions and computes the SSI.

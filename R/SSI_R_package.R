@@ -14,7 +14,7 @@
 #' @param threshold Sets the threshold for pattern length to two or four.
 #' @param iter Number of simulation iterations.
 #'
-#' @return A data set with SSI values for all identified alternative- and attribute-wise patterns.
+#' @return A data set with all identified alternative- and attribute-wise patterns and a data set with all corresponding SSI values.
 #'
 #' @author Sonja Perkovic, \email{bnsp@leeds.ac.uk}
 #' @keywords SSI
@@ -338,6 +338,10 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
   test3 = patternsProb(test, test2, iter)
   test3
 
+  #save table
+  write.csv(file = "patterns.csv", x = test3)
+  test3
+
   #apply SSI equation ####
 
   applySSIequation = function(df, df1, participant, trial, alternative, attribute) {
@@ -377,10 +381,12 @@ computeSSI = function(df, dfRan, participant, trial, alternative, attribute, num
   }
 
   test4 = applySSIequation(df, test3, "participant", "trial", "alternative", "attribute")
+  test4[, c("patternSum", "N") := NULL]
   test4
 
   #save table
   write.csv(file = "SSI.csv", x = test4)
+  test4
 }
 
 
